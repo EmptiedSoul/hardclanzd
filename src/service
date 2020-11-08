@@ -1,0 +1,103 @@
+#!/bin/bash
+_error(){
+	echo $1 >&2
+	exit 1
+}
+_sanity(){
+	[ "$(pgrep hardclanzd | wc -l)" -eq "$(ls -1 /run/service/ | wc -l)" ] || _error "ALARM! Number of supervisers ($(pgrep hardclanzd | wc -l)) is not equal to number of running services ($(ls -1 /run/service | wc -l)). Do something"
+}
+_usage(){
+cat <<EOF
+usage:
+	service <service> <command>
+
+	---------COMMANDS----------
+
+	status	: returns service status
+		if service not passed - returns all services
+
+	start	: start service
+
+	start-once	: start service but dont keep it alive
+
+	stop	: stops service
+		if service not passed - stops all services
+
+	restart	: stops and starts service
+
+	restart-once: restart service but dont keep it alive
+EOF
+exit 0
+}
+[ $UID -eq 0 ] || _error "Permission denied"
+_sanity
+[ -z "$1" ] && _usage
+case $1 in
+	status)
+		for pidfile in $(ls -1 /run/service)
+		do
+			echo "Service $pidfile running with superviser PID: $(cat /run/service/$pidfile)"
+		done
+		;;
+	stop)
+		echo "THESE SERVICES WILL BE STOPPED:"
+		ls -1 /run/service
+		killall -SIGUSR2 hardclanzd
+		;;
+	--help|help|-h)
+		_usage
+		;;
+esac
+case $2 in
+	status)
+		[ -e "/run/service/$1" ] || echo "Service $1 not running"
+		[ -e "/run/service/$1" ] && echo "Service $1 running with superviser PID: $(cat /run/service/$1)"
+		;;
+	start)
+		[ -e "/run/service/$1" ] && _error "Service $1 already running"
+		[ -e "/usr/lib/services/$1" ] || _error "Service $1 does not exists"
+		pd="$(pwd)"
+		echo "Starting $1..."
+		cd "/usr/lib/services/"
+		hardclanzd keep-alive $1
+		cd $pd
+		;;
+	stop)
+		[ -e "/run/service/$1" ] || _error "Service $1 not running"
+		echo "Stopping $1..."
+		kill -SIGUSR2 $(cat "/run/service/$1")
+		;;
+	restart)
+		[ -e "/run/service/$1" ] || _error "Service $1 not running"
+		echo "Stopping $1..."
+		kill -SIGUSR2 $(cat "/run/service/$1")
+		echo "Starting $1..."
+		[ -e "/usr/lib/services/$1" ] || _error "Service $1 does not exists"
+		pd="$(pwd)"
+		cd "/usr/lib/services"
+		hardclanzd keep-alive $1
+		cd $pd
+		;;
+	start-once)
+		[ -e "/run/service/$1" ] && _error "Service $1 already running"
+		[ -e "/usr/lib/services/$1" ] || _error "Service $1 does not exists"
+		pd="$(pwd)"
+		echo "Starting $1..."
+		cd "/usr/lib/services/"
+		hardclanzd once $1
+		cd $pd
+		;;
+	restart)
+		[ -e "/run/service/$1" ] || _error "Service $1 not running"
+		echo "Stopping $1..."
+		kill -SIGUSR2 $(cat "/run/service/$1")
+		echo "Starting $1..."
+		[ -e "/usr/lib/services/$1" ] || _error "Service $1 does not exists"
+		pd="$(pwd)"
+		cd "/usr/lib/services"
+		hardclanzd once $1
+		cd $pd
+		;;
+esac
+
+

@@ -1,0 +1,17 @@
+--- hardclanzd ---
+
+* hardclanz daemon that runs
+* services
+
+--- Utils ---
+
+* hardclanzd - daemon itself
+* service - control utility
+
+--- Roadmap ---
+
+* src/ - source codes
+* doc/ - documentation
+
+* Copyright (c) 2020 emptiedsoul
+* considered free software, look COPYING file
