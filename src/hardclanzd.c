@@ -10,19 +10,19 @@ FILE* logfile;
 FILE* pidfile;
 void USR1handler(int sig){
 	logfile = fopen(LOG_FILE, "a");
-	fprintf(logfile, "[ superviser %i ] Catched signal: %i\n",getpid(), sig);
+	fprintf(logfile, "[ supervisor %i ] Catched signal: %i\n",getpid(), sig);
 	signal(sig, USR1handler);
 	fclose(logfile);
 }
 void TERMhandler(int sig){
 	logfile = fopen(LOG_FILE, "a");
-	fprintf(logfile, "[ superviser %i ] Catched murdering signal: %i; Exiting\n",getpid(), sig);
+	fprintf(logfile, "[ supervisor %i ] Catched murdering signal: %i; Exiting\n",getpid(), sig);
 	fclose(logfile);
 	exit(0);
 }
 void USR2handler(){
 	logfile = fopen(LOG_FILE, "a");
-	fprintf(logfile, "[ superviser %i ] stopping %s (%i)\n", getpid(), process, pidexec);
+	fprintf(logfile, "[ supervisor %i ] stopping %s (%i)\n", getpid(), process, pidexec);
 	fclose(logfile);
 	kill(pidexec, SIGTERM);
 	sleep(5);
@@ -62,7 +62,7 @@ int main(int argc, char *argv[]){
 							fclose(logfile);
 							exit(1);
 					       case 0:
-							fprintf(logfile, "[ superviser %i ] starting %s (%i)\n", getppid(), argv[2] , getpid());
+							fprintf(logfile, "[ supervisor %i ] starting %s (%i)\n", getppid(), argv[2] , getpid());
 							fclose(logfile);
 							pidfile = fopen(pidfile_location, "w");
 							fprintf(pidfile, "%i", getppid());
@@ -79,9 +79,9 @@ int main(int argc, char *argv[]){
 				       exit(0);
 				       };
 			logfile = fopen(LOG_FILE, "a");
-			fprintf(logfile,"[ superviser %i ] started\n", pid);
+			fprintf(logfile,"[ supervisor %i ] started\n", pid);
 			fflush(logfile);   			       
-			printf("[ superviser %i ] started\n", pid);
+			printf("[ supervisor %i ] started\n", pid);
 			exit(0);
 		case 2:
 			switch (pid = fork()){
@@ -98,7 +98,7 @@ int main(int argc, char *argv[]){
 							fclose(logfile);
 							exit(1);
 					       case 0:
-							fprintf(logfile, "[ superviser %i ] starting %s (%i)\n", getppid(), argv[2] , getpid());
+							fprintf(logfile, "[ supervisor %i ] starting %s (%i)\n", getppid(), argv[2] , getpid());
 							fclose(logfile);
 							pidfile = fopen(pidfile_location, "w");
 							fprintf(pidfile, "%i", getppid());
@@ -116,9 +116,9 @@ int main(int argc, char *argv[]){
 				       exit(0);
 				       };
 			logfile = fopen(LOG_FILE, "a");
-			fprintf(logfile,"[ superviser %i ] started\n", pid);
+			fprintf(logfile,"[ supervisor %i ] started\n", pid);
 			fflush(logfile); 	       
-			printf("[ superviser %i ] spawned\n", pid);
+			printf("[ supervisor %i ] spawned\n", pid);
 			exit(0);
 		default:
 			puts("Unknown option");
